@@ -119,6 +119,12 @@ def delete_device_from_conf(device_id):
 
 
 def save_data1(data, file_path):
+    # Vérifiez si le répertoire parent existe
+    directory = os.path.dirname(file_path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)  # Crée le répertoire parent s'il n'existe pas
+    
+    # Écrivez les données dans le fichier
     with open(file_path, 'w') as file:
         json.dump(data, file, indent=4)
 
