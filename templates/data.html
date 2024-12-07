@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Graphique de Débit</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1rem;
+            text-align: center;
+        }
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        canvas {
+            max-width: 100%;
+            height: auto !important;
+        }
+        footer {
+            text-align: center;
+            margin-top: 2rem;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Graphique de Débit</h1>
+    </header>
+    <div class="container">
+        <canvas id="debitChart"></canvas>
+    </div>
+    <footer>
+        <p>&copy; 2024 - Surveillance de réseau</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const deviceId = '57239859'; // Remplacez par l'ID de votre appareil
+            const apiUrl = `http://localhost:5000/dataDevices?id=${deviceId}`;
+
+            fetch(apiUrl)
+                .then(response => response.json())
+                .then(data => {
+                    const labels = [];
+                    const octetsOut = [];
+                    const octetsIn = [];
+
+                    for (const key in data) {
+                        if (data.hasOwnProperty(key)) {
+                            const deviceData = data[key];
+                            labels.push(new Date(deviceData.timestamp * 1000).toLocaleTimeString()); // Convertit le timestamp
+                            octetsOut.push(deviceData.ifHcOctetsOut);
+                            octetsIn.push(deviceData.ifHcOctetsin);
+                        }
+                    }
+
+                    createChart(labels, octetsOut, octetsIn);
+                })
+                .catch(error => console.error('Erreur:', error));
+        });
+
+        function createChart(labels, octetsOut, octetsIn) {
+            const ctx = document.getElementById('debitChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Débit Sortant (Octets)',
+                            data: octetsOut,
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Débit Entrant (Octets)',
+                            data: octetsIn,
+                            borderColor: 'rgba(255, 99, 132, 1)',
+                            backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top'
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: 'Débit (Octets)'
+                            }
+                        },
+                        x: {
+                            title: {
+                                display: true,
+                                text: 'Temps'
+                            }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
